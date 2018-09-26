@@ -7,6 +7,21 @@ RUN apk add --update --no-cache --virtual=build-dependencies \
       libxml2-dev libxslt-dev libstdc++ tzdata \
       mariadb-client-libs nodejs yarn ca-certificates
 
+ARG rails_new_options
+ENV NOKOGIRI_USE_SYSTEM_LIBRARIES=1
+
+WORKDIR /gemfile.init
+COPY Gemfile.init Gemfile
+RUN bundle install && \
+    mkdir -p /tmp/tmp_app && \
+    cd /tmp/tmp_app && \
+    rails new . --force --database=mysql --skip-bundle $rails_new_options && \
+    mkdir -p /gemfile.rails && \
+    cp /tmp/tmp_app/Gemfile* /gemfile.rails/ && \
+    cd /gemfile.rails && \
+    rm -rf /tmp/tmp_app && \
+    bundle install
+
 WORKDIR /gemfile
 COPY Gemfile Gemfile
 COPY Gemfile.lock Gemfile.lock
